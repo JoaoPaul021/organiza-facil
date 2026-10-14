@@ -1,0 +1,38 @@
+name: Build Windows app
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Baixar o código do projeto
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar empacotador
+        run: python -m pip install --upgrade pip pyinstaller
+
+      - name: Gerar executável
+        run: pyinstaller --noconfirm --clean --onefile --windowed --name OrganizaFacil organiza_facil.py
+
+      - name: Criar arquivo para download
+        shell: pwsh
+        run: Compress-Archive -Path dist\OrganizaFacil.exe -DestinationPath dist\OrganizaFacil-Windows.zip
+
+      - name: Disponibilizar arquivos da compilação
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrganizaFacil-Windows
+          path: |
+            dist/OrganizaFacil.exe
+            dist/OrganizaFacil-Windows.zip
